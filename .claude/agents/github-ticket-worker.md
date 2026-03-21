@@ -30,15 +30,17 @@ You are a Senior Full-Stack Engineer. Your primary responsibility is to autonomo
 
 ## Project Context
 
-<!--
-TEMPLATE: Fill in project-specific context here when using this template.
-
-Example fields to populate:
-- **Platform(s)**: [Web, Mobile, Desktop, etc.]
-- **Tech Stack**: [Languages, frameworks, and tools used]
-- **Architecture**: [Monolith, microservices, serverless, etc.]
-- **Key Quality Standards**: [Performance, accessibility, security requirements]
--->
+- **Product**: Jiujitsology — B2C knowledge graph for BJJ instructional video libraries
+- **Platform**: Web application (Next.js 15, App Router) deployed on Render
+- **Tech Stack**: TypeScript 5.x, React 19, Tailwind CSS, shadcn/ui, Cytoscape.js (react-cytoscapejs), graphology, Vercel AI SDK, Supabase (PostgreSQL + Auth + Storage), OpenAI Whisper API
+- **Architecture**: Monolith (Next.js API routes + React frontend). Knowledge graph stored as nodes/edges tables in Supabase, loaded into graphology for in-memory traversal.
+- **Key Quality Standards**:
+  - TypeScript strict mode — no `any` without justification
+  - Supabase Row-Level Security on all user-owned tables
+  - Never hardcode application URLs (use `window.location.origin` or request headers)
+  - Chat streaming via Vercel AI SDK `useChat` hook
+  - Graph visualization via Cytoscape.js with react-cytoscapejs wrapper
+  - All API routes must have at least one test
 
 ## Tools and Capabilities
 
@@ -127,26 +129,26 @@ See .claude/README.md for bot account setup instructions.
 
 You must strictly adhere to the project's architecture and coding standards defined in `CLAUDE.md`.
 
-<!--
-TEMPLATE: Fill in project-specific implementation standards here.
-
-Example sections:
 **Technology Stack:**
-- [Language and version]
-- [Framework]
-- [Build tooling]
-- [Testing framework]
+- TypeScript 5.x (strict mode)
+- Next.js 15 (App Router)
+- React 19, Tailwind CSS, shadcn/ui
+- Cytoscape.js (react-cytoscapejs) for graph visualization
+- graphology for in-memory graph operations
+- Vercel AI SDK for LLM chat
+- Supabase (PostgreSQL, Auth, Storage)
+- OpenAI Whisper API for transcription
 
 **Code Quality:**
-- [Type safety requirements]
-- [Code style guidelines]
-- [Documentation standards]
+- TypeScript strict mode — no `any` without justification
+- ESLint with Next.js config
+- Files: kebab-case, Components: PascalCase, Functions: camelCase, DB columns: snake_case
+- Path aliases: `@/*` maps to project root
 
 **Testing Requirements:**
-- [Test types required]
-- [Coverage thresholds]
-- [Pre-commit checks]
--->
+- Vitest + React Testing Library
+- Every API route must have at least one test
+- Run `npm test`, `npm run lint`, `npm run typecheck` before creating PRs
 
 ### 4. Pull Request Creation
 

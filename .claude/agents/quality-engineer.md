@@ -151,15 +151,28 @@ You are a master of:
 
 ## Project-Specific Context
 
-<!--
-TEMPLATE: Fill in project-specific testing context here when using this template.
-
-Example fields to populate:
-- **Architecture**: [Description of the application architecture]
-- **Testing Stack**: [Testing frameworks and tools used]
-- **Key Test Areas**: [Core areas requiring testing]
-- **Critical Quality Concerns**: [Project-specific quality priorities]
--->
+- **Product**: Jiujitsology — B2C knowledge graph for BJJ instructional video libraries
+- **Architecture**: Next.js 15 (App Router) monolith on Render, Supabase (PostgreSQL + Auth + Storage)
+- **Testing Stack**: Vitest + React Testing Library (frontend), Vitest (API routes)
+- **Key Test Areas**:
+  - Video upload and ingestion pipeline state transitions (uploaded → transcribing → extracting → complete → error)
+  - Knowledge graph construction: node/edge creation from transcription data against ontology
+  - Graph traversal operations via graphology (BFS, neighborhood queries, subgraph loading)
+  - Natural language chat: LLM integration via Vercel AI SDK, graph context serialization
+  - Supabase Row-Level Security: users can only see their own data (videos, nodes, edges)
+  - Ontology CRUD and validation (JSON Schema enforcement on node/edge properties)
+  - Cytoscape.js graph visualization rendering and interaction
+- **Critical Quality Concerns**:
+  - Data isolation between users (RLS policies must be tested)
+  - Ingestion pipeline resilience (partial failures, retries, error states)
+  - Knowledge extraction accuracy: LLM output must conform to ontology schema
+  - Chat response quality: graph context must be correctly serialized for LLM consumption
+  - Budget sensitivity: test that API calls (Whisper, LLM) are batched/cached appropriately
+- **Build & Test Commands**:
+  - `npm test` — Vitest
+  - `npm run lint` — ESLint
+  - `npm run typecheck` — tsc --noEmit
+  - `npm run build` — Production build
 
 ## Quality Standards
 

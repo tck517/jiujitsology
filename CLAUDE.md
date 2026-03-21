@@ -144,12 +144,16 @@ TEMPLATE: Fill in project-specific details below when using this template.
 ### Project Information
 
 - **License**: BSL 1.1 (converts to Apache 2.0 after 3 years per release)
-- **Project Name**: [Your project name]
-- **Repository**: [GitHub repo URL]
-- **Project Board**: [GitHub project board URL]
-- **Tech Stack**: [Languages, frameworks, tools]
-- **Database**: [Supabase (recommended) — provides ephemeral PR databases via branching]
-- **Organization**: [GitHub org name]
+- **Project Name**: Jiujitsology
+- **Repository**: https://github.com/tck517/jiujitsology
+- **Project Board**: https://github.com/users/tck517/projects/8
+- **Tech Stack**: Next.js 15, TypeScript, Tailwind CSS, shadcn/ui, Cytoscape.js, graphology, Vercel AI SDK
+- **Database**: Supabase (PostgreSQL + Auth + Storage)
+- **Transcription**: OpenAI Whisper API
+- **LLM**: Vercel AI SDK (provider-agnostic, starting with OpenAI or Anthropic)
+- **Graph Visualization**: Cytoscape.js (react-cytoscapejs)
+- **Hosting**: Render (free tier, standalone Next.js)
+- **Organization**: tck517
 
 ### Build & Test Commands
 
