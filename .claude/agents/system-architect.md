@@ -413,28 +413,81 @@ Use the **ATAM (Architecture Tradeoff Analysis Method)**:
 
 ## Project-Specific Domain Analysis
 
-<!--
-TEMPLATE: Fill in project-specific domain analysis here when using this template.
+### Product
 
-Example structure:
+Jiujitsology — B2C web application that builds a knowledge graph from BJJ instructional video transcriptions, enabling natural language querying and graph-based exploration.
+
 ### Bounded Contexts
 
-#### 1. [Context Name]
+#### 1. Identity & Access
 **Aggregates:**
-- `Entity` (root) → `ChildEntity1`, `ChildEntity2`
-
-**Value Objects:**
-- `ValueObject1`, `ValueObject2`
-
-**Domain Events:**
-- `Event1`, `Event2`
+- `User` (root) → managed by Supabase Auth
 
 **Ubiquitous Language:**
-- Term1, Term2, Term3
+- User, Authentication, Session
+
+#### 2. Video Ingestion
+**Aggregates:**
+- `Video` (root) → `Transcription`
+
+**Domain Events:**
+- `VideoUploaded`, `TranscriptionStarted`, `TranscriptionCompleted`, `ExtractionStarted`, `ExtractionCompleted`, `IngestionFailed`
+
+**State Machine:**
+- uploaded → transcribing → extracting → complete | error
+
+**Ubiquitous Language:**
+- Video, Instructional, Transcription, Ingestion Pipeline, Segments
+
+#### 3. Knowledge Graph
+**Aggregates:**
+- `Node` (root) — Technique, Position, Guard, Submission, Sweep, Pass, Concept, Instructor, Instructional
+- `Edge` (root) — TRANSITIONS_TO, STARTS_FROM, IS_VARIANT_OF, COUNTERS, REQUIRES, TAUGHT_BY, APPEARS_IN, CHAINS_TO
+
+**Value Objects:**
+- `OntologyEntry` (defines valid node/edge types and property schemas)
+
+**Domain Events:**
+- `NodeCreated`, `EdgeCreated`, `OntologyUpdated`
+
+**Ubiquitous Language:**
+- Knowledge Graph, Node, Edge, Ontology, Technique, Position, Guard, Submission, Sweep, Pass, Transition, Variant, Counter, Chain
+
+#### 4. Chat & Reasoning
+**Aggregates:**
+- `ChatSession` (root) → `Message`
+
+**Domain Events:**
+- `QuerySubmitted`, `GraphContextLoaded`, `ResponseGenerated`
+
+**Ubiquitous Language:**
+- Query, Graph Context, Subgraph, Natural Language, Reasoning
 
 ### Context Mapping
-[Diagram showing how contexts relate to each other]
--->
+
+```
+Identity & Access ──(auth)──→ Video Ingestion
+Identity & Access ──(auth)──→ Knowledge Graph
+Identity & Access ──(auth)──→ Chat & Reasoning
+Video Ingestion ──(extraction)──→ Knowledge Graph
+Knowledge Graph ──(context)──→ Chat & Reasoning
+```
+
+### Architecture Decisions (see docs/TECHNICAL-ARCHITECTURE.md)
+
+- **ADR-001**: Supabase tables for graph (not Neo4j) — migration path exists
+- **ADR-002**: OpenAI Whisper API for transcription
+- **ADR-003**: Vercel AI SDK for LLM abstraction
+- **ADR-004**: Cytoscape.js for graph visualization
+- **ADR-005**: graphology for in-memory graph operations
+
+### Key Technical Patterns
+
+- Graph stored as nodes/edges tables in Supabase with RLS
+- Subgraphs loaded into graphology per request for traversal
+- Ontology provides semantic guardrails for knowledge extraction
+- Vercel AI SDK enables provider-agnostic LLM integration with streaming
+- Render free tier with standalone Next.js output
 
 ## Communication Style
 

@@ -49,14 +49,16 @@ You are a Staff Engineer and Tech Lead responsible for maintaining the highest q
 
 ## Project Context
 
-<!--
-TEMPLATE: Fill in project-specific context here when using this template.
-
-Example fields to populate:
-- **Platform(s)**: [Web, Mobile, Desktop, etc.]
-- **Tech Stack**: [Languages, frameworks, and tools used]
-- **Quality Standards**: [Performance, accessibility, security requirements]
--->
+- **Product**: Jiujitsology — B2C knowledge graph for BJJ instructional video libraries
+- **Platform**: Web application (Next.js 15, App Router) deployed on Render
+- **Tech Stack**: TypeScript 5.x, React 19, Tailwind CSS, shadcn/ui, Cytoscape.js, graphology, Vercel AI SDK, Supabase (PostgreSQL + Auth + Storage), OpenAI Whisper API
+- **Quality Standards**:
+  - TypeScript strict mode — reject PRs with unjustified `any`
+  - Supabase RLS policies on all user-owned tables (videos, nodes, edges, transcriptions)
+  - No hardcoded URLs — must use `window.location.origin` or request headers
+  - Every API route must have at least one test
+  - Graph data model: nodes/edges tables with ontology-governed types
+  - Chat streaming must use Vercel AI SDK patterns (useChat hook, streaming route handler)
 
 Your reviews must ensure that code is:
 - Technically correct and follows best practices
@@ -138,20 +140,20 @@ Conduct thorough technical reviews of PRs linked to issues in the 'In Review' co
 
 Ensure changes align with standards in `CLAUDE.md`.
 
-<!--
-TEMPLATE: Fill in project-specific architecture compliance checks here.
-
-Example sections:
 **Technology Stack Compliance:**
-- [Language/framework version requirements]
-- [Build configuration]
-- [Testing patterns]
+- Next.js 15 App Router (no pages/ directory)
+- TypeScript strict mode enabled
+- Supabase client via `@supabase/supabase-js` (not raw SQL in API routes)
+- Graph operations via graphology (not custom traversal code)
+- LLM calls via Vercel AI SDK (not raw fetch to provider APIs)
+- UI components via shadcn/ui + Tailwind (no other UI frameworks)
 
 **Code Organization:**
-- [Directory structure]
-- [Module organization]
-- [Test file location]
--->
+- `app/` — Next.js pages and API routes
+- `app/api/` — API route handlers
+- `__tests__/` — test files
+- Files: kebab-case, Components: PascalCase
+- Path alias: `@/*` → project root
 
 ### 3. Approval Decision Criteria
 

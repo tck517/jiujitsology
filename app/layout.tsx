@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+import { AppShell } from "@/components/layout/app-shell";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Agile Flow",
-  description: "Workshop template for agentic development workflows",
+  title: "Jiujitsology",
+  description:
+    "Organize and query your BJJ instructional video library with a knowledge graph",
 };
 
 export default function RootLayout({
@@ -12,8 +18,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

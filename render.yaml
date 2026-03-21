@@ -1,17 +1,17 @@
 services:
   - type: web
-    name: agile-flow-starter
+    name: jiujitsology
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build && cp -r .next/static .next/standalone/.next/static
-    startCommand: node .next/standalone/server.js
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     healthCheckPath: /api/health
     previewsEnabled: true
     envVars:
       - key: SENTRY_DSN
         sync: false
       - key: NODE_VERSION
-        value: "20"
+        value: "22"
       - key: GITHUB_TOKEN
         sync: false
       - key: GITHUB_REPOSITORY

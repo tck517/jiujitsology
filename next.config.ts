@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const nextConfig: NextConfig = {
-  output: "standalone",
-};
+const nextConfig: NextConfig = {};
 
 export default withSentryConfig(nextConfig, {
   // Disable source map uploads — no auth token in zero-config mode
