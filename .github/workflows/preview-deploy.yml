@@ -148,6 +148,28 @@ jobs:
             echo "migration_status=failed" >> $GITHUB_OUTPUT
           fi
 
+      - name: Create storage buckets on branch
+        if: steps.supabase_env.outputs.branch_exists == 'true'
+        run: |
+          BRANCH_URL="${SUPABASE_URL}"
+          SERVICE_KEY="${SUPABASE_SERVICE_KEY}"
+          echo "Creating storage buckets on branch: $BRANCH_URL"
+
+          # Use the Supabase Storage API directly (not the Management API)
+          RESPONSE=$(curl -s -X POST \
+            "${BRANCH_URL}/storage/v1/bucket" \
+            -H "Authorization: Bearer ${SERVICE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"id": "videos", "name": "videos", "public": false}')
+
+          if echo "$RESPONSE" | jq -e '.name' > /dev/null 2>&1; then
+            echo "Created videos bucket"
+          elif echo "$RESPONSE" | grep -q "already exists"; then
+            echo "Videos bucket already exists"
+          else
+            echo "WARNING: Could not create videos bucket: $RESPONSE"
+          fi
+
       # ── Render Preview Deployment ─────────────────────────────────────
 
       - name: Wait for Render preview service
