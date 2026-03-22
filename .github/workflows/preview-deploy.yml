@@ -150,16 +150,15 @@ jobs:
 
       - name: Create storage buckets on branch
         if: steps.supabase_env.outputs.branch_exists == 'true'
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          BRANCH_REF="${{ steps.supabase_env.outputs.branch_project_ref }}"
-          echo "Creating storage buckets on branch: $BRANCH_REF"
+          BRANCH_URL="${SUPABASE_URL}"
+          SERVICE_KEY="${SUPABASE_SERVICE_KEY}"
+          echo "Creating storage buckets on branch: $BRANCH_URL"
 
-          # Create the videos bucket (private)
+          # Use the Supabase Storage API directly (not the Management API)
           RESPONSE=$(curl -s -X POST \
-            "https://api.supabase.com/v1/projects/${BRANCH_REF}/storage/buckets" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "${BRANCH_URL}/storage/v1/bucket" \
+            -H "Authorization: Bearer ${SERVICE_KEY}" \
             -H "Content-Type: application/json" \
             -d '{"id": "videos", "name": "videos", "public": false}')
 
