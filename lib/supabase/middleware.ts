@@ -43,7 +43,8 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute =
     pathname === "/login" ||
     pathname === "/signup" ||
-    pathname === "/check-email";
+    pathname === "/check-email" ||
+    pathname === "/auth/callback";
 
   // Redirect unauthenticated users to login (except auth routes)
   if (!user && !isAuthRoute) {

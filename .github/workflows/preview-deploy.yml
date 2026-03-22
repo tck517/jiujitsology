@@ -438,7 +438,7 @@ jobs:
           echo "Configuring auth redirect URLs for Supabase branch: $BRANCH_REF"
 
           # Use the actual Render preview URL (not a hardcoded pattern)
-          PREVIEW_URL_CALLBACK="${PREVIEW_URL}/api/auth/callback"
+          PREVIEW_URL_CALLBACK="${PREVIEW_URL}/auth/callback"
           PREVIEW_BASE_URL="$PREVIEW_URL"
 
           echo "Preview base URL: $PREVIEW_BASE_URL"
