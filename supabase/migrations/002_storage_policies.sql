@@ -1,9 +1,6 @@
--- Create the videos storage bucket (private, not public)
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('videos', 'videos', false)
-ON CONFLICT (id) DO NOTHING;
-
 -- Storage RLS policies for the videos bucket
+-- Bucket creation is handled by the preview-deploy workflow via Management API
+-- and manually in production via the Supabase dashboard.
 -- Allows authenticated users to upload, and read/delete only their own files.
 -- Storage paths are scoped: videos/{user_id}/{file}
 
