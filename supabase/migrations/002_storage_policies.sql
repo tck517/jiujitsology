@@ -1,3 +1,8 @@
+-- Create the videos storage bucket (private, not public)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('videos', 'videos', false)
+ON CONFLICT (id) DO NOTHING;
+
 -- Storage RLS policies for the videos bucket
 -- Allows authenticated users to upload, and read/delete only their own files.
 -- Storage paths are scoped: videos/{user_id}/{file}
