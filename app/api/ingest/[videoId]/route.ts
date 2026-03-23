@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { transcribeVideo } from "@/lib/transcription";
 import { chunkSegments, embedChunks } from "@/lib/embeddings";
+import { extractKnowledge, storeExtraction } from "@/lib/extraction";
 
 const SIGNED_URL_EXPIRY = 3600; // 1 hour — enough for AssemblyAI to download
 
@@ -145,7 +146,6 @@ async function runPipeline(
       }
     }
 
-    // Advance to next pipeline step
     await supabase
       .from("videos")
       .update({ status: "extracting" })
@@ -154,6 +154,34 @@ async function runPipeline(
     console.log(
       `Embedding complete for video ${videoId}: ${embeddedChunks.length} chunks stored`
     );
+
+    // ── Step 3: Knowledge Extraction ────────────────────────────────
+    const { data: ontologyEntries } = await supabase
+      .from("ontology_entries")
+      .select("*");
+
+    if (!ontologyEntries || ontologyEntries.length === 0) {
+      throw new Error("No ontology entries found — run seed.sql first");
+    }
+
+    const extraction = await extractKnowledge(result.text, ontologyEntries);
+    console.log(
+      `Extracted ${extraction.nodes.length} nodes, ${extraction.edges.length} edges for video ${videoId}`
+    );
+
+    const stats = await storeExtraction(supabase, userId, videoId, extraction);
+    console.log(
+      `Stored extraction for video ${videoId}: ${stats.nodesCreated} new nodes, ` +
+        `${stats.edgesCreated} edges, ${stats.totalNodes} total nodes`
+    );
+
+    // Pipeline complete
+    await supabase
+      .from("videos")
+      .update({ status: "complete" })
+      .eq("id", videoId);
+
+    console.log(`Pipeline complete for video ${videoId}`);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown pipeline error";
