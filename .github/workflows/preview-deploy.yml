@@ -305,18 +305,23 @@ jobs:
           echo "Current env vars count: $(echo "$CURRENT_VARS" | jq 'length')"
 
           # Map to Next.js env var names used by the app
+          ASSEMBLYAI_KEY="${{ secrets.ASSEMBLYAI_API_KEY }}"
+
           UPDATED_VARS=$(echo "$CURRENT_VARS" | jq \
             --arg surl "${SUPABASE_URL}" \
             --arg sanonkey "${SUPABASE_ANON_KEY}" \
             --arg sservicekey "${SUPABASE_SERVICE_KEY}" \
+            --arg assemblyai "${ASSEMBLYAI_KEY}" \
             '[.[] | select(
               .envVar.key != "NEXT_PUBLIC_SUPABASE_URL" and
               .envVar.key != "NEXT_PUBLIC_SUPABASE_ANON_KEY" and
-              .envVar.key != "SUPABASE_SERVICE_ROLE_KEY"
+              .envVar.key != "SUPABASE_SERVICE_ROLE_KEY" and
+              .envVar.key != "ASSEMBLYAI_API_KEY"
             ) | {key: .envVar.key, value: .envVar.value}] + [
               {key: "NEXT_PUBLIC_SUPABASE_URL", value: $surl},
               {key: "NEXT_PUBLIC_SUPABASE_ANON_KEY", value: $sanonkey},
-              {key: "SUPABASE_SERVICE_ROLE_KEY", value: $sservicekey}
+              {key: "SUPABASE_SERVICE_ROLE_KEY", value: $sservicekey},
+              {key: "ASSEMBLYAI_API_KEY", value: $assemblyai}
             ]')
 
           UPDATE_RESPONSE=$(curl -s -X PUT \
