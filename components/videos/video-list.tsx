@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface Video {
   id: string;
@@ -20,6 +22,7 @@ interface Video {
 
 interface VideoListProps {
   videos: Video[];
+  onDelete: () => void;
 }
 
 const statusLabels: Record<string, { label: string; className: string }> = {
@@ -31,7 +34,31 @@ const statusLabels: Record<string, { label: string; className: string }> = {
   error: { label: "Error", className: "text-destructive" },
 };
 
-export function VideoList({ videos }: VideoListProps) {
+export function VideoList({ videos, onDelete }: VideoListProps) {
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  async function handleDelete(video: Video) {
+    const confirmed = window.confirm(
+      `Delete '${video.title}'? This will remove the video and all associated data (transcriptions, knowledge graph entries). This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(video.id);
+
+    const response = await fetch(`/api/videos/${video.id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error || "Failed to delete video.");
+    }
+
+    setDeleting(null);
+    onDelete();
+  }
+
   if (videos.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
@@ -54,9 +81,20 @@ export function VideoList({ videos }: VideoListProps) {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">{video.title}</CardTitle>
-                <span className={`text-xs font-medium ${status.className}`}>
-                  {status.label}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-medium ${status.className}`}>
+                    {status.label}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive h-7 px-2"
+                    onClick={() => handleDelete(video)}
+                    disabled={deleting === video.id}
+                  >
+                    {deleting === video.id ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
               </div>
               <CardDescription>{video.filename}</CardDescription>
             </CardHeader>
