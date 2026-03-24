@@ -11,7 +11,7 @@ const extractionSchema = z.object({
     z.object({
       type: z.string().describe("Node type from the ontology"),
       label: z.string().describe("Canonical name for this entity"),
-      properties: z.string().optional().describe("Optional properties as JSON string, e.g. {\"gi_nogi\": \"both\"}"),
+      properties: z.string().describe("Properties as JSON string, e.g. {\"gi_nogi\": \"both\"} or {} if none"),
     })
   ),
   edges: z.array(
@@ -19,7 +19,7 @@ const extractionSchema = z.object({
       source_label: z.string().describe("Label of the source node"),
       target_label: z.string().describe("Label of the target node"),
       relationship: z.string().describe("Edge type from the ontology"),
-      properties: z.string().optional().describe("Optional properties as JSON string, e.g. {\"gi_nogi\": \"both\"}"),
+      properties: z.string().describe("Properties as JSON string, e.g. {} if none"),
     })
   ),
 });
