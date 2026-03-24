@@ -1,7 +1,29 @@
-import { streamText } from "ai";
+import { streamText, type ModelMessage } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildChatContext, buildSystemPrompt } from "@/lib/chat-context";
+
+interface ClientMessage {
+  role: string;
+  content?: string;
+  parts?: { type: string; text?: string }[];
+}
+
+/** Convert client messages (v5 or v6 format) to ModelMessage format */
+function toModelMessages(messages: ClientMessage[]): ModelMessage[] {
+  return messages.map((m) => {
+    let content = "";
+    if (typeof m.content === "string") {
+      content = m.content;
+    } else if (Array.isArray(m.parts)) {
+      content = m.parts
+        .filter((p) => p.type === "text" && p.text)
+        .map((p) => p.text!)
+        .join(" ");
+    }
+    return { role: m.role as "user" | "assistant", content };
+  });
+}
 
 export async function POST(request: Request) {
   const supabase = await createServerClient();
@@ -19,37 +41,23 @@ export async function POST(request: Request) {
     return new Response("Missing messages", { status: 400 });
   }
 
-  // Get the latest user message text for context retrieval
-  const lastUserMessage = messages
-    .filter((m: { role: string }) => m.role === "user")
-    .pop();
+  const coreMessages = toModelMessages(messages);
 
-  // Extract text from message (handles both v5 content string and v6 parts array)
-  let queryText = "";
-  if (lastUserMessage) {
-    if (typeof lastUserMessage.content === "string") {
-      queryText = lastUserMessage.content;
-    } else if (Array.isArray(lastUserMessage.parts)) {
-      queryText = lastUserMessage.parts
-        .filter((p: { type: string }) => p.type === "text")
-        .map((p: { text: string }) => p.text)
-        .join(" ");
-    }
-  }
+  // Get the latest user message text for context retrieval
+  const queryText =
+    coreMessages
+      .filter((m) => m.role === "user")
+      .pop()
+      ?.content?.toString() || "";
 
   // Build context from knowledge graph + embeddings
-  const context = await buildChatContext(
-    supabase,
-    user.id,
-    queryText
-  );
-
+  const context = await buildChatContext(supabase, user.id, queryText);
   const systemPrompt = buildSystemPrompt(context);
 
   const result = streamText({
     model: openai("gpt-4o"),
     system: systemPrompt,
-    messages,
+    messages: coreMessages,
   });
 
   return result.toUIMessageStreamResponse();
