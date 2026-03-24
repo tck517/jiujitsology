@@ -86,9 +86,12 @@ export function VideoList({ videos, onDelete, onRefresh }: VideoListProps) {
         return (
           <Card key={video.id}>
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{video.title}</CardTitle>
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <CardTitle className="text-base truncate">{video.title}</CardTitle>
+                  <CardDescription className="truncate">{video.filename}</CardDescription>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
                   <PipelineStatus
                     status={video.status}
                     errorMessage={video.error_message}
@@ -119,7 +122,6 @@ export function VideoList({ videos, onDelete, onRefresh }: VideoListProps) {
                   </Button>
                 </div>
               </div>
-              <CardDescription>{video.filename}</CardDescription>
             </CardHeader>
           </Card>
         );
