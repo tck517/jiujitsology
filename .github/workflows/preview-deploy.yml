@@ -170,6 +170,23 @@ jobs:
             echo "WARNING: Could not create videos bucket: $RESPONSE"
           fi
 
+      - name: Seed branch database
+        if: steps.supabase_env.outputs.branch_exists == 'true' && steps.supabase_migrate.outputs.migration_status == 'success'
+        continue-on-error: true
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          BRANCH_REF="${{ steps.supabase_env.outputs.branch_project_ref }}"
+          echo "Seeding branch database: $BRANCH_REF"
+
+          supabase link --project-ref "$BRANCH_REF"
+
+          if supabase db execute --file supabase/seed.sql; then
+            echo "Seed data applied successfully"
+          else
+            echo "WARNING: Seed failed (may already exist — ON CONFLICT DO NOTHING)"
+          fi
+
       # ── Render Preview Deployment ─────────────────────────────────────
 
       - name: Wait for Render preview service
