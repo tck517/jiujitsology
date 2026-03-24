@@ -13,6 +13,9 @@ interface GraphControlsProps {
   onFitView: () => void;
   nodeCount: number;
   edgeCount: number;
+  instructors: string[];
+  selectedInstructor: string | null;
+  onInstructorChange: (instructor: string | null) => void;
 }
 
 const layouts = [
@@ -31,6 +34,9 @@ export function GraphControls({
   onFitView,
   nodeCount,
   edgeCount,
+  instructors,
+  selectedInstructor,
+  onInstructorChange,
 }: GraphControlsProps) {
   return (
     <div className="flex flex-col gap-4 p-4 border rounded-lg bg-card">
@@ -39,6 +45,26 @@ export function GraphControls({
           {nodeCount} nodes, {edgeCount} edges
         </Label>
       </div>
+
+      {instructors.length > 0 && (
+        <div>
+          <Label className="text-xs font-medium mb-2 block">Instructor</Label>
+          <select
+            className="w-full text-xs border rounded px-2 py-1.5 bg-background"
+            value={selectedInstructor || ""}
+            onChange={(e) =>
+              onInstructorChange(e.target.value || null)
+            }
+          >
+            <option value="">All Instructors</option>
+            {instructors.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <Label className="text-xs font-medium mb-2 block">Layout</Label>

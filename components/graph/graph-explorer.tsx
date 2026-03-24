@@ -43,6 +43,7 @@ export function GraphExplorer() {
   const [loading, setLoading] = useState(true);
   const [layout, setLayout] = useState("cose");
   const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set());
+  const [selectedInstructor, setSelectedInstructor] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
 
@@ -66,8 +67,44 @@ export function GraphExplorer() {
     fetchGraph();
   }, [fetchGraph]);
 
+  // Get instructor nodes for the dropdown
+  const instructors = nodes
+    .filter((n) => n.type === "Instructor")
+    .map((n) => n.label)
+    .sort();
+
+  // Build the set of node IDs connected to the selected instructor
+  const instructorFilteredIds = (() => {
+    if (!selectedInstructor) return null; // null = show all
+
+    const instructorNode = nodes.find(
+      (n) => n.type === "Instructor" && n.label === selectedInstructor
+    );
+    if (!instructorNode) return null;
+
+    // Find all nodes connected to this instructor (any edge path depth 1)
+    const connectedIds = new Set<string>([instructorNode.id]);
+    for (const edge of edges) {
+      if (edge.source_id === instructorNode.id) connectedIds.add(edge.target_id);
+      if (edge.target_id === instructorNode.id) connectedIds.add(edge.source_id);
+    }
+
+    // Also include nodes connected to those nodes (depth 2) for richer subgraph
+    const depth2Ids = new Set(connectedIds);
+    for (const edge of edges) {
+      if (connectedIds.has(edge.source_id)) depth2Ids.add(edge.target_id);
+      if (connectedIds.has(edge.target_id)) depth2Ids.add(edge.source_id);
+    }
+
+    return depth2Ids;
+  })();
+
   // Build Cytoscape elements from filtered data
-  const filteredNodes = nodes.filter((n) => visibleTypes.has(n.type));
+  const filteredNodes = nodes.filter((n) => {
+    if (!visibleTypes.has(n.type)) return false;
+    if (instructorFilteredIds && !instructorFilteredIds.has(n.id)) return false;
+    return true;
+  });
   const filteredNodeIds = new Set(filteredNodes.map((n) => n.id));
   const filteredEdges = edges.filter(
     (e) => filteredNodeIds.has(e.source_id) && filteredNodeIds.has(e.target_id)
@@ -177,6 +214,9 @@ export function GraphExplorer() {
           onFitView={handleFitView}
           nodeCount={filteredNodes.length}
           edgeCount={filteredEdges.length}
+          instructors={instructors}
+          selectedInstructor={selectedInstructor}
+          onInstructorChange={setSelectedInstructor}
         />
 
         {selectedNode && (
