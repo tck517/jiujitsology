@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import * as tus from "tus-js-client";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { hashFile } from "@/lib/hash";
@@ -16,12 +17,13 @@ interface UploadFormProps {
 
 /**
  * Upload a file to Supabase Storage using the TUS resumable upload protocol.
- * Returns the storage path on success, or throws on failure.
+ * Refreshes the access token before each chunk request to prevent expiry
+ * errors on long-running uploads.
  */
 function tusUpload(
   file: File,
   storagePath: string,
-  accessToken: string,
+  supabase: SupabaseClient,
   onProgress: (pct: number) => void
 ): Promise<void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -31,9 +33,6 @@ function tusUpload(
     const upload = new tus.Upload(file, {
       endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
       retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
       uploadDataDuringCreation: true,
       removeFingerprintOnSuccess: true,
       metadata: {
@@ -43,6 +42,12 @@ function tusUpload(
         cacheControl: "3600",
       },
       chunkSize: 6 * 1024 * 1024, // 6MB — Supabase required chunk size
+      onBeforeRequest: async (req) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          req.setHeader("Authorization", `Bearer ${session.access_token}`);
+        }
+      },
       onError: (err) => reject(err),
       onProgress: (bytesUploaded, bytesTotal) => {
         const pct = Math.round((bytesUploaded / bytesTotal) * 100);
@@ -148,7 +153,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
     const storagePath = `${session.user.id}/${fileId}_${safeName}`;
 
     try {
-      await tusUpload(file, storagePath, session.access_token, (pct) => {
+      await tusUpload(file, storagePath, supabase, (pct) => {
         setUploadPct(pct);
         setProgress(`Uploading... ${pct}%`);
       });
