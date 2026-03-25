@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import * as tus from "tus-js-client";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { hashFile } from "@/lib/hash";
 import { Button } from "@/components/ui/button";
@@ -13,10 +14,58 @@ interface UploadFormProps {
   onUploadComplete: () => void;
 }
 
+/**
+ * Upload a file to Supabase Storage using the TUS resumable upload protocol.
+ * Returns the storage path on success, or throws on failure.
+ */
+function tusUpload(
+  file: File,
+  storagePath: string,
+  accessToken: string,
+  onProgress: (pct: number) => void
+): Promise<void> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const bucketName = "videos";
+
+  return new Promise((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName,
+        objectName: storagePath,
+        contentType: file.type,
+        cacheControl: "3600",
+      },
+      chunkSize: 6 * 1024 * 1024, // 6MB — Supabase required chunk size
+      onError: (err) => reject(err),
+      onProgress: (bytesUploaded, bytesTotal) => {
+        const pct = Math.round((bytesUploaded / bytesTotal) * 100);
+        onProgress(pct);
+      },
+      onSuccess: () => resolve(),
+    });
+
+    // Check for previous uploads to enable resume
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length > 0) {
+        upload.resumeFromPreviousUpload(previousUploads[0]);
+      }
+      upload.start();
+    });
+  });
+}
+
 export function UploadForm({ onUploadComplete }: UploadFormProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [instructor, setInstructor] = useState("");
   const [instructional, setInstructional] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +74,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
     e.preventDefault();
     setError(null);
     setProgress(null);
+    setUploadPct(null);
 
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
@@ -76,41 +126,45 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
       }
     }
 
-    // Step 3: Upload to storage
-    setProgress("Uploading to storage...");
+    // Step 3: Upload to storage via TUS resumable protocol
+    setProgress("Uploading...");
+    setUploadPct(0);
 
     const supabase = createBrowserClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (!user) {
+    if (!session) {
       setError("You must be logged in to upload.");
       setUploading(false);
       setProgress(null);
+      setUploadPct(null);
       return;
     }
 
     const fileId = crypto.randomUUID();
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `${user.id}/${fileId}_${safeName}`;
+    const storagePath = `${session.user.id}/${fileId}_${safeName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("videos")
-      .upload(storagePath, file, {
-        contentType: file.type,
-        upsert: false,
+    try {
+      await tusUpload(file, storagePath, session.access_token, (pct) => {
+        setUploadPct(pct);
+        setProgress(`Uploading... ${pct}%`);
       });
-
-    if (uploadError) {
-      setError(`Upload failed: ${uploadError.message}`);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Upload failed unexpectedly.";
+      setError(`Upload failed: ${message}`);
       setUploading(false);
       setProgress(null);
+      setUploadPct(null);
       return;
     }
 
     // Step 4: Create database record
     setProgress("Saving video record...");
+    setUploadPct(null);
 
     const response = await fetch("/api/videos", {
       method: "POST",
@@ -141,6 +195,7 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
     setInstructional("");
     setUploading(false);
     setProgress(null);
+    setUploadPct(null);
     onUploadComplete();
   }
 
@@ -183,6 +238,14 @@ export function UploadForm({ onUploadComplete }: UploadFormProps) {
       {error && <p className="text-sm text-destructive">{error}</p>}
       {progress && (
         <p className="text-sm text-muted-foreground">{progress}</p>
+      )}
+      {uploadPct !== null && (
+        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all duration-300"
+            style={{ width: `${uploadPct}%` }}
+          />
+        </div>
       )}
       <Button type="submit" disabled={uploading}>
         {uploading ? "Uploading..." : "Upload video"}

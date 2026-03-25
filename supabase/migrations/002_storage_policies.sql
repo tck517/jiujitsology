@@ -3,6 +3,11 @@
 -- and manually in production via the Supabase dashboard.
 -- Allows authenticated users to upload, and read/delete only their own files.
 -- Storage paths are scoped: videos/{user_id}/{file}
+--
+-- IMPORTANT: The videos bucket file_size_limit must be set to 5368709120 (5GB)
+-- via the Supabase dashboard (Storage > videos > Settings) to match the app's
+-- MAX_FILE_SIZE. Without this, uploads over the default limit will fail with
+-- "The object exceeded the maximum allowed size."
 
 CREATE POLICY "Authenticated users can upload videos"
 ON storage.objects FOR INSERT
