@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { hashFile } from "@/lib/hash";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,32 +11,6 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
 interface UploadFormProps {
   onUploadComplete: () => void;
-}
-
-/** Compute SHA-256 hash of a file using streaming reads */
-async function hashFile(file: File): Promise<string> {
-  const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks
-  const chunks: ArrayBuffer[] = [];
-  let offset = 0;
-
-  while (offset < file.size) {
-    const slice = file.slice(offset, offset + CHUNK_SIZE);
-    chunks.push(await slice.arrayBuffer());
-    offset += CHUNK_SIZE;
-  }
-
-  // Concatenate all chunks and hash
-  const totalLength = chunks.reduce((sum, c) => sum + c.byteLength, 0);
-  const combined = new Uint8Array(totalLength);
-  let pos = 0;
-  for (const chunk of chunks) {
-    combined.set(new Uint8Array(chunk), pos);
-    pos += chunk.byteLength;
-  }
-
-  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export function UploadForm({ onUploadComplete }: UploadFormProps) {
