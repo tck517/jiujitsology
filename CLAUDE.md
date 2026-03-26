@@ -145,15 +145,15 @@ TEMPLATE: Fill in project-specific details below when using this template.
 
 - **License**: BSL 1.1 (converts to Apache 2.0 after 3 years per release)
 - **Project Name**: JiuJitsology
-- **Repository**: https://github.com/tck517/jiujitsology
-- **Project Board**: https://github.com/users/tck517/projects/8
+- **Repository**: https://github.com/feature-x/jiujitsology
+- **Project Board**: https://github.com/orgs/feature-x/projects/24
 - **Tech Stack**: Next.js 15, TypeScript, Tailwind CSS, shadcn/ui, Cytoscape.js, graphology, Vercel AI SDK
 - **Database**: Supabase (PostgreSQL + Auth + Storage)
 - **Transcription**: OpenAI Whisper API
 - **LLM**: Vercel AI SDK (provider-agnostic, starting with OpenAI or Anthropic)
 - **Graph Visualization**: Cytoscape.js (react-cytoscapejs)
 - **Hosting**: Render (free tier, standalone Next.js)
-- **Organization**: tck517
+- **Organization**: feature-x
 
 ### Build & Test Commands
 
