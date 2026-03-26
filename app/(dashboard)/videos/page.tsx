@@ -14,6 +14,8 @@ interface Video {
   duration_sec: number | null;
   error_message: string | null;
   created_at: string;
+  instructor: string | null;
+  instructional: string | null;
 }
 
 const POLL_INTERVAL = 5000; // 5 seconds
