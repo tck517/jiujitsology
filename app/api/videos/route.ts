@@ -13,8 +13,10 @@ export async function GET() {
 
   const { data: videos, error } = await supabase
     .from("videos")
-    .select("id, title, filename, status, duration_sec, error_message, created_at")
+    .select("id, title, filename, status, duration_sec, error_message, created_at, instructor, instructional")
     .eq("user_id", user.id)
+    .order("instructor", { ascending: true, nullsFirst: false })
+    .order("instructional", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   if (error) {
