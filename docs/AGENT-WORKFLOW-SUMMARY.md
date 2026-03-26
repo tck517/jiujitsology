@@ -687,7 +687,7 @@ Human actions:
 # Output shows:
 # - va-worker created PR #60
 # - va-reviewer posted review
-# - tck517 (human) merged PR
+# - feature-x (human) merged PR
 # - No restricted actions detected
 ```
 
