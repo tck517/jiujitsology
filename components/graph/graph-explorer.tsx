@@ -344,9 +344,33 @@ export function GraphExplorer() {
           selectedInstructionals={selectedInstructionals}
           onToggleInstructional={handleToggleInstructional}
         />
+      </div>
 
-        {selectedNode && (
-          <Card className="mt-4">
+      {/* Graph canvas */}
+      <div className="flex-1 border rounded-lg overflow-hidden bg-white">
+        <CytoscapeComponent
+          elements={elements}
+          stylesheet={cytoscapeStylesheet}
+          layout={{ name: layout }}
+          style={{ width: "100%", height: "100%" }}
+          cy={(cy: cytoscape.Core) => {
+            cyRef.current = cy;
+            cy.on("tap", "node", (evt: EventObject) => {
+              handleNodeSelect(evt.target.id());
+            });
+            cy.on("tap", (evt: EventObject) => {
+              if (evt.target === cy) {
+                setSelectedNode(null);
+              }
+            });
+          }}
+        />
+      </div>
+
+      {/* Node detail panel — right column */}
+      {selectedNode && (
+        <div className="w-64 shrink-0 overflow-y-auto">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription>{selectedNode.type}</CardDescription>
               <CardTitle className="text-base">{selectedNode.label}</CardTitle>
@@ -448,29 +472,8 @@ export function GraphExplorer() {
               )}
             </CardContent>
           </Card>
-        )}
-      </div>
-
-      {/* Graph canvas */}
-      <div className="flex-1 border rounded-lg overflow-hidden bg-white">
-        <CytoscapeComponent
-          elements={elements}
-          stylesheet={cytoscapeStylesheet}
-          layout={{ name: layout }}
-          style={{ width: "100%", height: "100%" }}
-          cy={(cy: cytoscape.Core) => {
-            cyRef.current = cy;
-            cy.on("tap", "node", (evt: EventObject) => {
-              handleNodeSelect(evt.target.id());
-            });
-            cy.on("tap", (evt: EventObject) => {
-              if (evt.target === cy) {
-                setSelectedNode(null);
-              }
-            });
-          }}
-        />
-      </div>
+        </div>
+      )}
 
       {playingVideo && (
         <VideoPlayer
